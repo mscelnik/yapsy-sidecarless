@@ -1,0 +1,7 @@
+[Core]
+name = Example plugin with sidecar file
+module = sidecar_plugin
+
+[Documentation]
+author = Matt
+version = 1.0

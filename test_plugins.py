@@ -25,11 +25,10 @@ class BasicPluginTests(ut.TestCase):
         """ Loaded plugin names are correct.
         """
         valid_names = [
-            'Example plugin with sidecar file (local)',
-            'Example Plugin without sidecar file (local)',
-            'Example plugin with sidecar file (remote)',
-            'Example Plugin without sidecar file (remote)',
+            'Test plugin with sidecar file (local)',
+            'Test plugin without sidecar file (local)',
+            'Test plugin with sidecar file (remote)',
+            'Test plugin without sidecar file (remote)',
         ]
         for p in self.mngr.getAllPlugins():
-            if p.name not in valid_names:
-                self.fail()
+            self.assertIn(p.name, valid_names)

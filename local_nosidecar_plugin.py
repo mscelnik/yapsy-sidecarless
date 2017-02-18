@@ -3,7 +3,7 @@
 
 from yapsy.IPlugin import IPlugin
 
-__plugin_name__ = 'Test Plugin without sidecar file (local to package)'
+__plugin_name__ = 'Test plugin without sidecar file (local)'
 __plugin_author__ = 'Matt'
 
 

@@ -1,5 +1,5 @@
 [Core]
-name = Test plugin with sidecar file, remote from package
+name = Test plugin with sidecar file (remote)
 module = sidecar_plugin
 
 [Documentation]

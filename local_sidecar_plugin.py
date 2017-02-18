@@ -8,4 +8,4 @@ class MyPlugin(IPlugin):
 
     def __init__(self):
         super().__init__()
-        print('Initialized sidecar plugin.')
+        print('Initialized sidecar plugin (local).')

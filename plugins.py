@@ -45,7 +45,7 @@ class Analyzer(_locators.IPluginFileAnalyzer):
     def __init__(self):
         super().__init__(name='SingleModuleAnalyzer')
 
-    def _loadModule(self, filename):
+    def _loadModule(self, filepath):
         """ Uses importlib to import a module from a given path.
 
         Args:
@@ -56,12 +56,15 @@ class Analyzer(_locators.IPluginFileAnalyzer):
             otherwise returns None.
         """
         import importlib.machinery
+        import importlib.util
 
-        if filename.endswith('.py'):
+        if filepath.endswith('.py'):
             try:
                 loader = importlib.machinery.SourceFileLoader(
-                    'testmod', filename)
-                themodule = loader.load_module()
+                    'testmod', filepath)
+                spec = importlib.util.spec_from_loader(loader.name, loader)
+                themodule = importlib.util.module_from_spec(spec)
+                loader.exec_module(themodule)
                 return themodule
             except ImportError:
                 return None
@@ -139,6 +142,91 @@ class Locator(_locators.PluginFileLocator):
                 _locators.PluginFileAnalyzerWithInfoFile("ConfigFileAnalyzer"),
             ]
         super().__init__(analyzers=analyzers)
+
+    def locatePlugins(self):
+        """ Walk through the plugins' places and look for plugins. [OVERRIDES]
+
+        This function is a tidied up version from Yapsy.  It differs in that
+        the plugin analyzer gets the full file path to check, not just the
+        file name.  This allows the single-file analyzer to work.
+
+        Returns:
+            The candidate plugins and number of plugins found.
+        """
+        import os
+        import os.path
+
+        _candidates = []
+        _discovered = {}
+
+        for directory in map(os.path.abspath, self.plugins_places):
+            if not os.path.isdir(directory):
+                continue
+            if self.recursive:
+                debug_txt_mode = "recursively"
+                walk_iter = os.walk(directory, followlinks=True)
+            else:
+                debug_txt_mode = "non-recursively"
+                walk_iter = [(directory, [], os.listdir(directory))]
+
+            # Iteratively walk through each directory.
+            for root, fldrs, files in walk_iter:
+                for filename in files:
+                    sidecar_path = os.path.join(root, filename)
+
+                    for analyzer in self._analyzers:
+                        # Eliminate the obvious non-plugin files.
+                        if not analyzer.isValidPlugin(sidecar_path):
+                            continue
+                        # Check if we've already discovered this plugin.
+                        if sidecar_path in _discovered:
+                            continue
+
+                        # Get the plugin info from the candidate file.
+                        plugin_info = self._getInfoForPluginFromAnalyzer(
+                            analyzer, root, filename)
+
+                        if plugin_info is None:
+                            # We consider this was the good strategy to use for:
+                            # it failed -> not a plugin -> don't try another
+                            # strategy
+                            break
+                        else:
+                            candidate_path = plugin_info.path
+
+                        # Now determine the path of the file to execute,
+                        # depending on whether the path indicated is a directory
+                        # or a file.  Remember all the files belonging to a
+                        # discovered plugin, so that strategies (if several in
+                        # use) won't collide
+                        if os.path.isdir(candidate_path):
+                            # Assume this is a Python package, so the executable
+                            # file is the package __init__.py.
+                            plugin_path = os.path.join(candidate_path,
+                                                       "__init__")
+
+                            # It is a package, so add all the files concerned.
+                            for _file in os.listdir(candidate_path):
+                                _path = os.path.join(candidate_path, _file)
+                                if _file.endswith(".py"):
+                                    _discovered[_path] = plugin_path
+                        elif ((plugin_info.path.endswith(".py") and
+                               os.path.isfile(plugin_info.path)) or
+                              os.path.isfile(plugin_info.path + ".py")):
+                            # Assume this is a single-module plugin.
+                            plugin_path = candidate_path
+
+                            if plugin_path.endswith(".py"):
+                                _discovered[plugin_path] = plugin_path[:-3]
+                            else:
+                                _discovered[plugin_path] = plugin_path
+                        else:
+                            break
+                        _candidates.append((sidecar_path, plugin_path,
+                                            plugin_info))
+                        _discovered[sidecar_path] = plugin_path
+        self._discovered_plugins.update(_discovered)
+        return _candidates, len(_candidates)
 
 
 class Manager(_managers.PluginManager):

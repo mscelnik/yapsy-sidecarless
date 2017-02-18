@@ -1,5 +1,5 @@
 [Core]
-name = Test plugin with sidecar file (local to package)
+name = Test plugin with sidecar file (local)
 module = local_sidecar_plugin
 
 [Documentation]

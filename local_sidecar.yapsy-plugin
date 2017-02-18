@@ -1,0 +1,7 @@
+[Core]
+name = Test plugin with sidecar file (local to package)
+module = local_sidecar_plugin
+
+[Documentation]
+author = Matt
+version = 1.0

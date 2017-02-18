@@ -1,4 +1,4 @@
-""" Example plugin for sidecar plugin manager.
+""" Test plugin for sidecar plugin manager, local to package.
 """
 
 from yapsy.IPlugin import IPlugin

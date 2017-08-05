@@ -16,10 +16,10 @@ class BasicPluginTests(ut.TestCase):
         self.mngr.collectPlugins()
 
     def test_loaded_four(self):
-        """ Loaded exactly four plugins from local directory.
+        """ Loaded exactly five plugins from local directory.
         """
         N = len(self.mngr.getAllPlugins())
-        self.assertEqual(N, 4)
+        self.assertEqual(N, 5)
 
     def test_correct_names(self):
         """ Loaded plugin names are correct.
@@ -29,6 +29,7 @@ class BasicPluginTests(ut.TestCase):
             'Test plugin without sidecar file (local)',
             'Test plugin with sidecar file (remote)',
             'Test plugin without sidecar file (remote)',
+            'Test plugin without sidecar file that imports module (remote)'
         ]
         for p in self.mngr.getAllPlugins():
             self.assertIn(p.name, valid_names)

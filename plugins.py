@@ -57,9 +57,13 @@ class Analyzer(_locators.IPluginFileAnalyzer):
         """
         import importlib.machinery
         import importlib.util
-
+        import os
+        import sys
         if filepath.endswith('.py'):
+            pre_load_path = list(sys.path)
             try:
+                temp_path, _ = os.path.split(filepath)
+                sys.path.append(temp_path)
                 loader = importlib.machinery.SourceFileLoader(
                     'testmod', filepath)
                 spec = importlib.util.spec_from_loader(loader.name, loader)
@@ -68,6 +72,9 @@ class Analyzer(_locators.IPluginFileAnalyzer):
                 return themodule
             except ImportError:
                 return None
+            finally:
+                sys.path = pre_load_path
+
         else:
             return None
 
